@@ -29,6 +29,7 @@ target_include_directories(CellularAutomata3DVulkan PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
         ${glad_SOURCE_DIR}
         ${imgui_SOURCE_DIR}
+        ${imgui_impl_SOURCE_DIR}
         ${Vulkan_INCLUDE_DIRS}
 )
 
@@ -38,6 +39,7 @@ target_link_libraries(CellularAutomata3DVulkan
         spdlog
         glm::glm
         glfw
+        imgui
         Vulkan::Vulkan
 )
 
