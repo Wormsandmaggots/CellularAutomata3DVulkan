@@ -470,9 +470,20 @@ int main(int, char**)
     //IM_ASSERT(font != nullptr);
 
     // Our state
-    bool show_demo_window = true;
+    //VARIABLES
+    bool show_demo_window = false;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 active_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 inactive_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 activating_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 deactivating_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    static int f = 3;
+    static int a = 1;
+    static bool as = false;
+    static int counter = 0;
+    static int T = 1;
+    static int t = 1;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -511,22 +522,27 @@ int main(int, char**)
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
-            static float f = 0.0f;
-            static int counter = 0;
+            int ctrl_max = (f*f*f)-1;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+            ImGui::Begin("Cellular automata 3D");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Text("Use this panel to adjust simulation parameters.");               // Display some text (you can use a format strings too)
+            ImGui::SliderInt("Cube edge size", &f, 3, 100);
+            ImGui::SliderInt("Initially active cells", &a, 1,ctrl_max);
+            ImGui::Checkbox("Use advanced states", &as);
+            ImGui::ColorEdit3("Active color", (float*)&active_color);
+            ImGui::ColorEdit3("Inactive color", (float*)&inactive_color);
+            if(as){
+                ImGui::ColorEdit3("Activating color", (float*)&activating_color);
+                ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
+            }
+            ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
+            ImGui::SliderInt("Generation duration (frame)", &t, 1,6);
+            if (ImGui::Button("Start simulation")){
+                //starting the simulation
+            }
+            if (ImGui::Button("Stop simulation")){
+                //stopping the simulation
+            }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
