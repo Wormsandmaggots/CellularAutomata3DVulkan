@@ -530,7 +530,7 @@ int main(int, char**)
             ImGui::SliderInt("Initially active cells", &a, 1,ctrl_max);
             ImGui::Checkbox("Use advanced states", &as);
             ImGui::ColorEdit3("Active color", (float*)&active_color);
-            ImGui::ColorEdit3("Inactive color", (float*)&inactive_color);
+            ImGui::ColorEdit4("Inactive color", (float*)&inactive_color);
             if(as){
                 ImGui::ColorEdit3("Activating color", (float*)&activating_color);
                 ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
