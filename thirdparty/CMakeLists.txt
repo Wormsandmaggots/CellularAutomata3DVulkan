@@ -40,12 +40,29 @@ add_library(imgui STATIC
 target_include_directories(imgui PRIVATE ${imgui_SOURCE_DIR})
 target_link_libraries(imgui glfw Vulkan::Vulkan)
 
+
+set(stb_DIR ${CMAKE_CURRENT_LIST_DIR}/stb CACHE INTERNAL "")
+
+add_library(stb INTERFACE ${stb_DIR}/stb_image.h)
+
+target_include_directories(stb INTERFACE ${stb_DIR})
+
+
+set(tiny_obj_DIR ${CMAKE_CURRENT_LIST_DIR}/tiny_obj CACHE INTERNAL "")
+
+add_library(tiny_obj INTERFACE ${tiny_obj_DIR}/tiny_obj_loader.h)
+
+target_include_directories(tiny_obj INTERFACE ${tiny_obj_DIR})
+
+
 set_target_properties(
         glfw
         imgui
         glad
         glm
         spdlog
+        stb
+        tiny_obj
         PROPERTIES FOLDER "thirdparty"
 )
 

@@ -41,6 +41,8 @@ target_link_libraries(CellularAutomata3DVulkan
         glfw
         imgui
         Vulkan::Vulkan
+        stb
+        tiny_obj
 )
 
 target_link_libraries(CellularAutomata3DVulkan Vulkan::Vulkan)
