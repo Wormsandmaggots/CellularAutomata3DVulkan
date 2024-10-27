@@ -32,8 +32,8 @@
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
-const std::string MODEL_PATH = "box.obj";
-const std::string TEXTURE_PATH = "texture.jpg";
+const std::string MODEL_PATH = "assets/box.obj";
+const std::string TEXTURE_PATH = "assets/texture.jpg";
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -615,8 +615,8 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto vertShaderCode = readFile("vertex.spv");
-        auto fragShaderCode = readFile("fragment.spv");
+        auto vertShaderCode = readFile("assets/shaders/vertex.spv");
+        auto fragShaderCode = readFile("assets/shaders/fragment.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
