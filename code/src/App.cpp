@@ -158,7 +158,7 @@ void App::initImgui()
 //     wd->Surface = surface;
 //
 //     // Check for WSI support
-//     u32 queueFamily = findQueueFamilies(physicalDevice).graphicsFamily.value();
+//     u32 queueFamily = findQueueFamilies(physicalDevice).presentFamily.value();
 //     VkBool32 res;
 //     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamily, wd->Surface, &res);
 //     if (res != VK_TRUE)
@@ -182,22 +182,41 @@ void App::initImgui()
 //     //printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
 //
 //     // Create SwapChain, RenderPass, Framebuffer, etc.
-//     u32 imageCount;
-//     VkResult err = vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+//     u32 imageCount = 3;
 //
 //     //wd->Swapchain = swapChain;
 //
 //     IM_ASSERT(imageCount >= 2);
-//     ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, wd, queueFamily, nullptr, WIDTH, HEIGHT, imageCount);
-//
-//     IMGUI_CHECKVERSION();
-//     ImGui::CreateContext();
-//     ImGuiIO& io = ImGui::GetIO(); (void)io;
-//     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-//     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-//
-//     // Setup Dear ImGui style
-//     ImGui::StyleColorsDark();
+//     ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, wd, queueFamily, g_Allocator, WIDTH, HEIGHT, imageCount);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForVulkan(window, true);
+
+    u32 queueFamily = findQueueFamilies(physicalDevice).presentFamily.value();
+
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = instance;
+    init_info.PhysicalDevice = physicalDevice;
+    init_info.Device = device;
+    init_info.QueueFamily = queueFamily;
+    init_info.Queue = graphicsQueue;
+    init_info.PipelineCache = VK_NULL_HANDLE;
+    init_info.DescriptorPool = descriptorPool;
+    init_info.RenderPass = renderPass;
+    init_info.Subpass = 0;
+    init_info.MinImageCount = 3;
+    init_info.ImageCount = 3;
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    init_info.Allocator = g_Allocator;
+    ImGui_ImplVulkan_Init(&init_info);
 }
 
 void App::createInstance() {
@@ -946,17 +965,19 @@ void App::createInstance() {
     }
 
     void App::createDescriptorPool() {
-        std::array<VkDescriptorPoolSize, 2> poolSizes{};
+        std::array<VkDescriptorPoolSize, 3> poolSizes{};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[2].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);;
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * poolSizes.size();
 
         if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
@@ -1155,6 +1176,8 @@ void App::createInstance() {
 
             vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+
         vkCmdEndRenderPass(commandBuffer);
 
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -1199,6 +1222,62 @@ void App::createInstance() {
     }
 
     void App::drawFrame() {
+
+    // ImGui_ImplVulkan_NewFrame();
+    //     ImGui_ImplGlfw_NewFrame();
+    //     ImGui::NewFrame();
+    //
+    //     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+    //     if (show_demo_window)
+    //         ImGui::ShowDemoWindow(&show_demo_window);
+    //
+    //     // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+    //     {
+    //         static float f = 0.0f;
+    //         static int counter = 0;
+    //
+    //         ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+    //
+    //         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+    //         ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+    //         ImGui::Checkbox("Another Window", &show_another_window);
+    //
+    //         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+    //         ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+    //
+    //         if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+    //             counter++;
+    //         ImGui::SameLine();
+    //         ImGui::Text("counter = %d", counter);
+    //
+    //         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
+    //         ImGui::End();
+    //     }
+    //
+    //     // 3. Show another simple window.
+    //     if (show_another_window)
+    //     {
+    //         ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+    //         ImGui::Text("Hello from another window!");
+    //         if (ImGui::Button("Close Me"))
+    //             show_another_window = false;
+    //         ImGui::End();
+    //     }
+    //
+    //     // Rendering
+    //     ImGui::Render();
+    //     ImDrawData* draw_data = ImGui::GetDrawData();
+    //     const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
+    //     if (!is_minimized)
+    //     {
+    //         wd.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+    //         wd.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+    //         wd.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+    //         wd.ClearValue.color.float32[3] = clear_color.w;
+    //         FrameRender(wd, draw_data);
+    //         FramePresent(wd);
+    //     }
+
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;
@@ -1216,6 +1295,19 @@ void App::createInstance() {
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Render your ImGui UI here
+        ImGui::Begin("Hello, ImGui!");
+        ImGui::Text("This is a simple example.");
+        ImGui::End();
+
+        // Rendering ImGui
+        ImGui::Render();
+
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
         VkSubmitInfo submitInfo{};
