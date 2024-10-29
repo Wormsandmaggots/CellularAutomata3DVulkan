@@ -80,9 +80,9 @@ void App::initWindow() {
 
     void App::cleanup() {
 
-        // ImGui_ImplVulkan_Shutdown();
-        // ImGui_ImplGlfw_Shutdown();
-        // ImGui::DestroyContext();
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
 
         cleanupSwapChain();
 
@@ -978,6 +978,7 @@ void App::createInstance() {
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * poolSizes.size();
+        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
         if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
@@ -1223,61 +1224,6 @@ void App::createInstance() {
 
     void App::drawFrame() {
 
-    // ImGui_ImplVulkan_NewFrame();
-    //     ImGui_ImplGlfw_NewFrame();
-    //     ImGui::NewFrame();
-    //
-    //     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    //     if (show_demo_window)
-    //         ImGui::ShowDemoWindow(&show_demo_window);
-    //
-    //     // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-    //     {
-    //         static float f = 0.0f;
-    //         static int counter = 0;
-    //
-    //         ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-    //
-    //         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-    //         ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-    //         ImGui::Checkbox("Another Window", &show_another_window);
-    //
-    //         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-    //         ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-    //
-    //         if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-    //             counter++;
-    //         ImGui::SameLine();
-    //         ImGui::Text("counter = %d", counter);
-    //
-    //         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
-    //         ImGui::End();
-    //     }
-    //
-    //     // 3. Show another simple window.
-    //     if (show_another_window)
-    //     {
-    //         ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-    //         ImGui::Text("Hello from another window!");
-    //         if (ImGui::Button("Close Me"))
-    //             show_another_window = false;
-    //         ImGui::End();
-    //     }
-    //
-    //     // Rendering
-    //     ImGui::Render();
-    //     ImDrawData* draw_data = ImGui::GetDrawData();
-    //     const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-    //     if (!is_minimized)
-    //     {
-    //         wd.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-    //         wd.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-    //         wd.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-    //         wd.ClearValue.color.float32[3] = clear_color.w;
-    //         FrameRender(wd, draw_data);
-    //         FramePresent(wd);
-    //     }
-
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;
@@ -1300,10 +1246,59 @@ void App::createInstance() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Render your ImGui UI here
-        ImGui::Begin("Hello, ImGui!");
-        ImGui::Text("This is a simple example.");
-        ImGui::End();
+        static int f = 3;
+    static int a = 1;
+    static int T = 0;
+    static int t = 0;
+    static bool as = false;
+    static ImColor active_color;
+    static ImColor inactive_color;
+    static ImColor activating_color;
+    static ImColor deactivating_color;
+
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        {
+            int ctrl_max = (f*f*f)-1;
+
+            if(ctrl_max < a)
+                a = ctrl_max;
+
+            ImGui::Begin("Cellular automata 3D");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Text("Use this panel to adjust simulation parameters.");               // Display some text (you can use a format strings too)
+            ImGui::SliderInt("Cube edge size", &f, 3, 100);
+            ImGui::SliderInt("Initially active cells", &a, 1, ctrl_max);
+            ImGui::Checkbox("Use advanced states", &as);
+            ImGui::ColorEdit3("Active color", (float*)&active_color);
+            ImGui::ColorEdit4("Inactive color", (float*)&inactive_color);
+            if(as){
+                ImGui::ColorEdit3("Activating color", (float*)&activating_color);
+                ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
+            }
+            ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
+            ImGui::SliderInt("Generation duration (frame)", &t, 1,6);
+            if (ImGui::Button("Start simulation")){
+                //starting the simulation
+            }
+            if (ImGui::Button("Stop simulation")){
+                //stopping the simulation
+            }
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+        }
+
+        // 3. Show another simple window.
+        if (show_another_window)
+        {
+            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
+            ImGui::End();
+        }
 
         // Rendering ImGui
         ImGui::Render();
