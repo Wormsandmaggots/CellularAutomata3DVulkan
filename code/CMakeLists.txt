@@ -50,8 +50,8 @@ target_link_libraries(CellularAutomata3DVulkan Vulkan::Vulkan)
 
 add_custom_command(TARGET CellularAutomata3DVulkan POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${CMAKE_SOURCE_DIR}/res
-        ${CMAKE_CURRENT_BINARY_DIR}/res
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_CURRENT_BINARY_DIR}/assets
 )
 
 
