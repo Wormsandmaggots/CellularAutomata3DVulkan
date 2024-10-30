@@ -8,22 +8,7 @@
 
 #include "Settings.h"
 #include "VulkanUtils.h"
-
-void App::initWindow() {
-        glfwInit();
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-        glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-        //ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, window, 0, allocator, width, height, g_MinImageCount);
-    }
-
-    void App::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-        auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
-        app->framebufferResized = true;
-    }
+#include "Utils.h"
 
     void App::initVulkan() {
         createInstance();
@@ -50,11 +35,10 @@ void App::initWindow() {
         createDescriptorSets();
         createCommandBuffers();
         createSyncObjects();
-        initImgui();
     }
 
     void App::mainLoop() {
-        while (!glfwWindowShouldClose(window)) {
+        while (!glfwWindowShouldClose(window.GetWindow())) {
             glfwPollEvents();
             drawFrame();
         }
@@ -79,10 +63,7 @@ void App::initWindow() {
     }
 
     void App::cleanup() {
-
-        ImGui_ImplVulkan_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
+        imgui.CleanUp();
 
         cleanupSwapChain();
 
@@ -128,16 +109,16 @@ void App::initWindow() {
         vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyInstance(instance, nullptr);
 
-        glfwDestroyWindow(window);
+        window.CleanUp();
 
         glfwTerminate();
     }
 
     void App::recreateSwapChain() {
         int width = 0, height = 0;
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(window.GetWindow(), &width, &height);
         while (width == 0 || height == 0) {
-            glfwGetFramebufferSize(window, &width, &height);
+            glfwGetFramebufferSize(window.GetWindow(), &width, &height);
             glfwWaitEvents();
         }
 
@@ -150,74 +131,6 @@ void App::initWindow() {
         createDepthResources();
         createFramebuffers();
     }
-
-void App::initImgui()
-{
-//     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-//
-//     wd->Surface = surface;
-//
-//     // Check for WSI support
-//     u32 queueFamily = findQueueFamilies(physicalDevice).presentFamily.value();
-//     VkBool32 res;
-//     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamily, wd->Surface, &res);
-//     if (res != VK_TRUE)
-//     {
-//         fprintf(stderr, "Error no WSI support on physical device 0\n");
-//         exit(-1);
-//     }
-//
-//     // Select Surface Format
-//     const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-//     const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-//     wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(physicalDevice, wd->Surface, requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
-//
-//     // Select Present Mode
-// #ifdef APP_USE_UNLIMITED_FRAME_RATE
-//     VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
-// #else
-//     VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
-// #endif
-//     wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(physicalDevice, wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
-//     //printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
-//
-//     // Create SwapChain, RenderPass, Framebuffer, etc.
-//     u32 imageCount = 3;
-//
-//     //wd->Swapchain = swapChain;
-//
-//     IM_ASSERT(imageCount >= 2);
-//     ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, wd, queueFamily, g_Allocator, WIDTH, HEIGHT, imageCount);
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForVulkan(window, true);
-
-    u32 queueFamily = findQueueFamilies(physicalDevice).presentFamily.value();
-
-    ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance = instance;
-    init_info.PhysicalDevice = physicalDevice;
-    init_info.Device = device;
-    init_info.QueueFamily = queueFamily;
-    init_info.Queue = graphicsQueue;
-    init_info.PipelineCache = VK_NULL_HANDLE;
-    init_info.DescriptorPool = descriptorPool;
-    init_info.RenderPass = renderPass;
-    init_info.Subpass = 0;
-    init_info.MinImageCount = 3;
-    init_info.ImageCount = 3;
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    init_info.Allocator = g_Allocator;
-    ImGui_ImplVulkan_Init(&init_info);
-}
 
 void App::createInstance() {
         if (enableValidationLayers && !checkValidationLayerSupport()) {
@@ -258,14 +171,6 @@ void App::createInstance() {
         }
     }
 
-    void App::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
-        createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
-    }
-
     void App::setupDebugMessenger() {
         if (!enableValidationLayers) return;
 
@@ -278,7 +183,7 @@ void App::createInstance() {
     }
 
     void App::createSurface() {
-        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(instance, window.GetWindow(), nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
     }
@@ -661,7 +566,8 @@ void App::createInstance() {
         depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
-    VkFormat App::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    VkFormat App::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const
+    {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
             vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
@@ -676,16 +582,13 @@ void App::createInstance() {
         throw std::runtime_error("failed to find supported format!");
     }
 
-    VkFormat App::findDepthFormat() {
+    VkFormat App::findDepthFormat() const
+    {
         return findSupportedFormat(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
-    }
-
-    bool App::hasStencilComponent(VkFormat format) {
-        return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
     void App::createTextureImage() {
@@ -746,7 +649,8 @@ void App::createInstance() {
         }
     }
 
-    VkImageView App::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
+    VkImageView App::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const
+    {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = image;
@@ -766,7 +670,8 @@ void App::createInstance() {
         return imageView;
     }
 
-    void App::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
+    void App::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) const
+    {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -801,7 +706,8 @@ void App::createInstance() {
         vkBindImageMemory(device, image, imageMemory, 0);
     }
 
-    void App::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    void App::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) const
+    {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
@@ -848,7 +754,8 @@ void App::createInstance() {
         endSingleTimeCommands(commandBuffer);
     }
 
-    void App::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+    void App::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) const
+    {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkBufferImageCopy region{};
@@ -1031,7 +938,8 @@ void App::createInstance() {
         }
     }
 
-    void App::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+    void App::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const
+    {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
@@ -1057,7 +965,8 @@ void App::createInstance() {
         vkBindBufferMemory(device, buffer, bufferMemory, 0);
     }
 
-    VkCommandBuffer App::beginSingleTimeCommands() {
+    VkCommandBuffer App::beginSingleTimeCommands() const
+    {
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -1076,7 +985,8 @@ void App::createInstance() {
         return commandBuffer;
     }
 
-    void App::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+    void App::endSingleTimeCommands(VkCommandBuffer commandBuffer) const
+    {
         vkEndCommandBuffer(commandBuffer);
 
         VkSubmitInfo submitInfo{};
@@ -1100,7 +1010,8 @@ void App::createInstance() {
         endSingleTimeCommands(commandBuffer);
     }
 
-    uint32_t App::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    uint32_t App::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
+    {
         VkPhysicalDeviceMemoryProperties memProperties;
         vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
@@ -1127,7 +1038,8 @@ void App::createInstance() {
         }
     }
 
-    void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+    void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const
+    {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -1177,7 +1089,7 @@ void App::createInstance() {
 
             vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+            imgui.EndFrame(commandBuffer);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1207,7 +1119,8 @@ void App::createInstance() {
         }
     }
 
-    void App::updateUniformBuffer(uint32_t currentImage) {
+    void App::updateUniformBuffer(uint32_t currentImage) const
+    {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -1242,66 +1155,9 @@ void App::createInstance() {
 
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        imgui.StartFrame();
 
-        static int f = 3;
-    static int a = 1;
-    static int T = 0;
-    static int t = 0;
-    static bool as = false;
-    static ImColor active_color;
-    static ImColor inactive_color;
-    static ImColor activating_color;
-    static ImColor deactivating_color;
-
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            int ctrl_max = (f*f*f)-1;
-
-            if(ctrl_max < a)
-                a = ctrl_max;
-
-            ImGui::Begin("Cellular automata 3D");                          // Create a window called "Hello, world!" and append into it.
-            ImGui::Text("Use this panel to adjust simulation parameters.");               // Display some text (you can use a format strings too)
-            ImGui::SliderInt("Cube edge size", &f, 3, 100);
-            ImGui::SliderInt("Initially active cells", &a, 1, ctrl_max);
-            ImGui::Checkbox("Use advanced states", &as);
-            ImGui::ColorEdit3("Active color", (float*)&active_color);
-            ImGui::ColorEdit4("Inactive color", (float*)&inactive_color);
-            if(as){
-                ImGui::ColorEdit3("Activating color", (float*)&activating_color);
-                ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
-            }
-            ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
-            ImGui::SliderInt("Generation duration (frame)", &t, 1,6);
-            if (ImGui::Button("Start simulation")){
-                //starting the simulation
-            }
-            if (ImGui::Button("Stop simulation")){
-                //stopping the simulation
-            }
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
-
-        // Rendering ImGui
-        ImGui::Render();
+        imgui.Render();
 
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
@@ -1349,7 +1205,8 @@ void App::createInstance() {
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    VkShaderModule App::createShaderModule(const std::vector<char>& code) {
+    VkShaderModule App::createShaderModule(const std::vector<char>& code) const
+    {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();
@@ -1363,32 +1220,12 @@ void App::createInstance() {
         return shaderModule;
     }
 
-    VkSurfaceFormatKHR App::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-        for (const auto& availableFormat : availableFormats) {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                return availableFormat;
-            }
-        }
-
-        return availableFormats[0];
-    }
-
-    VkPresentModeKHR App::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-        for (const auto& availablePresentMode : availablePresentModes) {
-            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                return availablePresentMode;
-            }
-        }
-
-        return VK_PRESENT_MODE_FIFO_KHR;
-    }
-
     VkExtent2D App::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;
         } else {
             int width, height;
-            glfwGetFramebufferSize(window, &width, &height);
+            glfwGetFramebufferSize(window.GetWindow(), &width, &height);
 
             VkExtent2D actualExtent = {
                 static_cast<uint32_t>(width),
@@ -1443,23 +1280,8 @@ void App::createInstance() {
         return indices.isComplete() && extensionsSupported && swapChainAdequate  && supportedFeatures.samplerAnisotropy;
     }
 
-    bool App::checkDeviceExtensionSupport(VkPhysicalDevice device) {
-        uint32_t extensionCount;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-
-        for (const auto& extension : availableExtensions) {
-            requiredExtensions.erase(extension.extensionName);
-        }
-
-        return requiredExtensions.empty();
-    }
-
-    QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice device) const
+    {
         QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount = 0;
@@ -1489,67 +1311,4 @@ void App::createInstance() {
         }
 
         return indices;
-    }
-
-    std::vector<const char*> App::getRequiredExtensions() {
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-        if (enableValidationLayers) {
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
-
-        return extensions;
-    }
-
-    bool App::checkValidationLayerSupport() {
-        uint32_t layerCount;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-        std::vector<VkLayerProperties> availableLayers(layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-        for (const char* layerName : validationLayers) {
-            bool layerFound = false;
-
-            for (const auto& layerProperties : availableLayers) {
-                if (strcmp(layerName, layerProperties.layerName) == 0) {
-                    layerFound = true;
-                    break;
-                }
-            }
-
-            if (!layerFound) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    std::vector<char> App::readFile(const std::string& filename) {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open()) {
-            throw std::runtime_error("failed to open file!");
-        }
-
-        size_t fileSize = (size_t) file.tellg();
-        std::vector<char> buffer(fileSize);
-
-        file.seekg(0);
-        file.read(buffer.data(), fileSize);
-
-        file.close();
-
-        return buffer;
-    }
-
-    VKAPI_ATTR VkBool32 VKAPI_CALL App::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-        return VK_FALSE;
     }

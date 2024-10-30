@@ -12,4 +12,6 @@
 #define u32 uint32_t
 #define u64 uint64_t
 
+#define null nullptr
+
 #endif //TYPES_H
