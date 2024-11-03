@@ -97,10 +97,14 @@ private:
 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+    std::vector<InstanceData> instanceData;
+
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
+    VkBuffer instanceBuffer;
+    VkDeviceMemory instanceBufferMemory;
 
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
@@ -215,6 +219,8 @@ private:
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
     bool isDeviceSuitable(VkPhysicalDevice device);
+
+    void createInstanceBuffer();
 };
 
 #endif

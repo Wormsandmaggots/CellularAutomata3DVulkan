@@ -11,6 +11,9 @@
 #include "Utils.h"
 
     void App::initVulkan() {
+
+        instanceData = std::vector<InstanceData>(INSTANCE_COUNT);
+
         createInstance();
         setupDebugMessenger();
         createSurface();
@@ -31,6 +34,7 @@
         createVertexBuffer();
         createIndexBuffer();
         createUniformBuffers();
+        createInstanceBuffer();
         createDescriptorPool();
         createDescriptorSets();
         createCommandBuffers();
@@ -91,6 +95,9 @@
 
         vkDestroyBuffer(device, vertexBuffer, nullptr);
         vkFreeMemory(device, vertexBufferMemory, nullptr);
+
+        vkDestroyBuffer(device, instanceBuffer, nullptr);
+        vkFreeMemory(device, instanceBufferMemory, nullptr);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -423,12 +430,12 @@ void App::createInstance() {
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto bindingDescription = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        std::vector<VkVertexInputBindingDescription> bindingDescription = Vertex::getBindingDescription();
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions = Vertex::getAttributeDescriptions();
 
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.vertexBindingDescriptionCount = bindingDescription.size();
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -1079,15 +1086,15 @@ void App::createInstance() {
             scissor.extent = swapChainExtent;
             vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-            VkBuffer vertexBuffers[] = {vertexBuffer};
-            VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+            VkBuffer vertexBuffers[] = {vertexBuffer, instanceBuffer};
+            VkDeviceSize offsets[] = {0, 0};
+            vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
 
             vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), INSTANCE_COUNT, 0, 0, 0);
 
             imgui.EndFrame(commandBuffer);
 
@@ -1127,12 +1134,25 @@ void App::createInstance() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+
+        std::vector<InstanceData> instanceData(INSTANCE_COUNT);
+        for (size_t i = 0; i < INSTANCE_COUNT; i++) {
+            instanceData[i].model = glm::translate(glm::mat4(1.0f), glm::vec3(0 * i,0 * i,0.4f * i));
+            instanceData[i].model = glm::scale(instanceData[i].model, glm::vec3(0.1f, 0.1f, 0.1f));
+            instanceData[i].model = glm::rotate(instanceData[i].model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // Może być różne dla każdej instancji
+            instanceData[i].color = generateRandomColor();
+        }
+
+        void* instanceDataPtr;
+        vkMapMemory(device, instanceBufferMemory, 0, sizeof(InstanceData) * instanceData.size(), 0, &instanceDataPtr);
+        memcpy(instanceDataPtr, instanceData.data(), sizeof(InstanceData) * instanceData.size());
+        vkUnmapMemory(device, instanceBufferMemory);
     }
 
     void App::drawFrame() {
@@ -1311,4 +1331,19 @@ void App::createInstance() {
         }
 
         return indices;
+    }
+
+void App::createInstanceBuffer() {
+        VkDeviceSize bufferSize = sizeof(InstanceData) * INSTANCE_COUNT; // Zmienna numberOfInstances określa liczbę instancji
+
+        // Tworzenie bufora instancji
+        createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     instanceBuffer, instanceBufferMemory);
+
+        // Mapowanie pamięci i kopiowanie danych instancji
+        void* data;
+        vkMapMemory(device, instanceBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, instanceData.data(), (size_t)bufferSize); // instanceData to wskaźnik do danych instancji
+        vkUnmapMemory(device, instanceBufferMemory);
     }

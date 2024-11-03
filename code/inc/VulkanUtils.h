@@ -45,22 +45,31 @@ struct SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
+struct InstanceData {
+    alignas(16 * 4) glm::mat4 model;
+    alignas(4) glm::vec4 color;
+};
+
 struct Vertex {
     glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
 
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    static std::vector<VkVertexInputBindingDescription> getBindingDescription() {
+        std::vector<VkVertexInputBindingDescription> bindingDescription{{},{}};
+        bindingDescription[0].binding = 0;
+        bindingDescription[0].stride = sizeof(Vertex);
+        bindingDescription[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        bindingDescription[1].binding = 1;
+        bindingDescription[1].stride = sizeof(InstanceData);
+        bindingDescription[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(8);
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
@@ -76,6 +85,18 @@ struct Vertex {
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
+        for (int i = 0; i < 4; i++) {
+            attributeDescriptions[3 + i].binding = 1;
+            attributeDescriptions[3 + i].location = 3 + i;
+            attributeDescriptions[3 + i].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            attributeDescriptions[3 + i].offset = sizeof(glm::vec4) * i;
+        }
+
+        attributeDescriptions[7].binding = 1;
+        attributeDescriptions[7].location = 7;
+        attributeDescriptions[7].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attributeDescriptions[7].offset = sizeof(glm::vec4) * 4;
 
         return attributeDescriptions;
     }
@@ -94,7 +115,7 @@ namespace std {
 }
 
 struct UniformBufferObject {
-    alignas(16) glm::mat4 model;
+    //alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 };

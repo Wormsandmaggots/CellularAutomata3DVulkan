@@ -25,4 +25,14 @@ std::vector<char> readFile(const std::string& filename) {
     return buffer;
 }
 
+glm::vec4 generateRandomColor() {
+
+    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX); // Losowa wartość dla czerwonego
+    float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);// Losowa wartość dla zielonego
+    float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX); // Losowa wartość dla niebieskiego
+    float a = 1.0f; // Pełna przezroczystość
+
+    return glm::vec4(r, g, b, a); // Zwraca kolor w formacie RGBA
+}
+
 #endif //UTILS_H
