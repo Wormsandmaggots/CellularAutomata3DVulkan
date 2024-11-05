@@ -18,6 +18,10 @@ add_executable(CellularAutomata3DVulkan
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${HEADER_FILES}
         ${SOURCE_FILES}
+        src/Cell.cpp
+        inc/Cell.h
+        src/Box.cpp
+        inc/Box.h
 )
 
 

@@ -10,6 +10,7 @@
 #include "App.h"
 #include "Types.h"
 #include "VulkanUtils.h"
+#include "Settings.h"
 
 void ImguiWrapper::Init(App* app)
 {
@@ -94,6 +95,7 @@ void ImguiWrapper::Render()
            }
            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
            ImGui::End();
+
     }
 
     // 3. Show another simple window.
