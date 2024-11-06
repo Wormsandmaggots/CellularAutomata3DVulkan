@@ -6,8 +6,8 @@ layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec2 inTexCoord;
 
 // Atrybuty instancji (macierz modelu i dodatkowy atrybut)
-layout(location = 3, binding = 1) in mat4 instanceModel;
-layout(location = 7, binding = 1) in vec4 cubeColor; // np. kolor instancji lub inna informacja
+layout(location = 3) in mat4 instanceModel;
+layout(location = 7) in vec4 cubeColor; // np. kolor instancji lub inna informacja
 
 // Uniform Buffer dla globalnych danych (widok, projekcja)
 layout(set = 0, binding = 0) uniform UniformBufferObject {
