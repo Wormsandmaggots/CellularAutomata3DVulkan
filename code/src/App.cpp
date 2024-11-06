@@ -1157,8 +1157,7 @@ void App::createInstance() {
 
             // Optional rotation (can vary per instance if desired)
             instanceData[i].model = glm::rotate(instanceData[i].model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-            instanceData[i].color = box->getCell(glm::vec3(x,y,z))->color;
+            instanceData[i].color = box->getCell(glm::vec3(x,y,z))->state->color;
         }
 
         void* instanceDataPtr;

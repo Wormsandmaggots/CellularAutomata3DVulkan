@@ -13,7 +13,7 @@ void Box::createCells() {
     for(int x=0; x<size; x++){
         for(int y=0; y<size; y++){
             for(int z=0; z<size; z++){
-                cells[glm::vec3(x,y,z)] = new Cell(0, glm::vec3(x,y,z), glm::vec4(1,0,0,0)); //creating invisible, inactive cells
+                cells[glm::vec3(x,y,z)] = new Cell(&inactive, glm::vec3(x,y,z)); //creating inactive cells
             }
         }
     }
@@ -27,8 +27,8 @@ void Box::enableCells(int _amount) {
         float y = static_cast <float> (rand()) / static_cast <float> (size);
         float z = static_cast <float> (rand()) / static_cast <float> (size);
         temp = getCell(glm::vec3(x,y,z));
-        if(temp->state == 0){
-            temp->changeState(1,glm::vec4(1,1,1,1));
+        if(temp->state->id == 0){
+            temp->changeState(&active);
         }
         else{
             i--;
@@ -38,6 +38,9 @@ void Box::enableCells(int _amount) {
 
 void Box::updateCells(int _n) {
     int activeNeighbours;
+    for (auto& cell : cells) {
+        cell.second->changeState(&inactive);
+    }
     if(_n == 0){
         
     }
@@ -56,6 +59,6 @@ Cell* Box::getCell(glm::vec3 _position){
 
 void Box::disableCells() {
     for (auto& cell : cells) {
-        cell.second->changeState(0,glm::vec4(0,0,0,0));
+        cell.second->changeState(&inactive);
     }
 }

@@ -22,6 +22,8 @@ add_executable(CellularAutomata3DVulkan
         inc/Cell.h
         src/Box.cpp
         inc/Box.h
+        inc/State.h
+        src/State.cpp
 )
 
 

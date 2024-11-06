@@ -7,6 +7,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "imgui.h"
+#include "State.h"
 
 class App;
 
@@ -21,7 +22,11 @@ public:
 
 private:
     ImGuiIO io;
-
+    int size;
+    int init_active;
+    bool adv_states;
+    int s_duration;
+    int g_duration;
 };
 
 

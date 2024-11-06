@@ -11,6 +11,7 @@
 #include "Types.h"
 #include "VulkanUtils.h"
 #include "Settings.h"
+#include "Utils.h"
 
 void ImguiWrapper::Init(App* app)
 {
@@ -61,10 +62,10 @@ void ImguiWrapper::Render()
     static int T = 0;
     static int t = 0;
     static bool as = false;
-    static ImColor active_color;
-    static ImColor inactive_color;
-    static ImColor activating_color;
-    static ImColor deactivating_color;
+    static ImColor active_color = glmVec4ToImColor(active.color);
+    static ImColor inactive_color = glmVec4ToImColor(inactive.color);
+    static ImColor activating_color = glmVec4ToImColor(activating.color);
+    static ImColor deactivating_color = glmVec4ToImColor(deactivating.color);
 
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
@@ -95,6 +96,16 @@ void ImguiWrapper::Render()
            }
            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
            ImGui::End();
+
+           size = f;
+           init_active = a;
+           adv_states = as;
+           active.color = imColorToGlmVec4(active_color);
+           inactive.color = imColorToGlmVec4(inactive_color);
+           activating.color = imColorToGlmVec4(activating_color);
+           deactivating.color = imColorToGlmVec4(deactivating_color);
+           s_duration = T;
+           g_duration = t;
 
     }
 

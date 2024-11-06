@@ -32,6 +32,7 @@
 #include "VulkanUtils.h"
 #include "Window.h"
 #include "Box.h"
+#include "State.h"
 
 class App {
 public:
@@ -60,6 +61,7 @@ public:
 
 private:
     Box* box;
+
     Window window;
     ImguiWrapper imgui;
 

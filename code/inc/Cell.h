@@ -7,17 +7,17 @@
 #include "glm/vec4.hpp"
 #include <unordered_map>
 #include <memory>
+#include "State.h"
 
 class Cell {
 public:
-    int state; //0 - inactive, 1 - active, 2 - deactivating, 3 - activating
-    int previousState;
+    State* state;
+    State* previousState;
     glm::vec3 position;
-    glm::vec4 color;
 
 
-    Cell(int _state, glm::vec3 _position, glm::vec4 _color);
-    void changeState(int _newState, glm::vec4 _newColor);
+    Cell(State* _state, glm::vec3 _position);
+    void changeState(State* _newState);
 };
 
 struct Vec3Hash {

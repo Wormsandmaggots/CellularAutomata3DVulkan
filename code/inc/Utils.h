@@ -7,7 +7,7 @@
 #include <fstream>
 #include <vector>
 
-std::vector<char> readFile(const std::string& filename) {
+inline std::vector<char> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {
@@ -25,7 +25,7 @@ std::vector<char> readFile(const std::string& filename) {
     return buffer;
 }
 
-glm::vec4 generateRandomColor() {
+inline glm::vec4 generateRandomColor() {
 
     float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX); // Losowa wartość dla czerwonego
     float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);// Losowa wartość dla zielonego
@@ -35,4 +35,11 @@ glm::vec4 generateRandomColor() {
     return glm::vec4(r, g, b, a); // Zwraca kolor w formacie RGBA
 }
 
+inline ImColor glmVec4ToImColor(const glm::vec4& color) {
+    return ImColor(color.r, color.g, color.b, color.a);
+}
+
+inline glm::vec4 imColorToGlmVec4(const ImColor& color) {
+    return glm::vec4(color.Value.x, color.Value.y, color.Value.z, color.Value.w);
+}
 #endif //UTILS_H
