@@ -24,6 +24,6 @@ void main() {
     gl_Position = ubo.proj * ubo.view * instanceModel * vec4(inPosition, 1.0);
 
     // Przekazanie koloru i współrzędnych tekstury do fragment shadera
-    fragColor = vec4(cubeColor.x, cubeColor.y, cubeColor.z, 1.0f); // Kolor instancji jako modulacja (opcjonalnie)
+    fragColor = vec4(cubeColor.x, cubeColor.y, cubeColor.z, cubeColor.w); // Kolor instancji jako modulacja (opcjonalnie)
     fragTexCoord = inTexCoord;
 }
