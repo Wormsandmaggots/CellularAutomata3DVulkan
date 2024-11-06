@@ -11,13 +11,16 @@
 
 class Cell {
 public:
-    State* state;
     State* previousState;
+    State* state;
+    State* nextState;
     glm::vec3 position;
 
 
     Cell(State* _state, glm::vec3 _position);
     void changeState(State* _newState);
+    void changeNextState(State* _newState);
+    void changePrevState(State* _newState);
 };
 
 struct Vec3Hash {

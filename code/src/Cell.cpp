@@ -9,3 +9,10 @@ void Cell::changeState(State* _newState) {
     state = _newState;
 }
 
+void Cell::changeNextState(State* _newState) {
+    nextState = _newState;
+}
+
+void Cell::changePrevState(State* _newState) {
+    previousState = _newState;
+}

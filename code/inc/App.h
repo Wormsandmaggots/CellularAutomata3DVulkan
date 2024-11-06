@@ -61,6 +61,7 @@ public:
 
 private:
     Box* box;
+    int i;
 
     Window window;
     ImguiWrapper imgui;
@@ -226,6 +227,8 @@ private:
     bool isDeviceSuitable(VkPhysicalDevice device);
 
     void createInstanceBuffer();
+
+    void updateCellLogic();
 };
 
 #endif

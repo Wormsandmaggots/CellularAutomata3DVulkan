@@ -13,7 +13,7 @@ public:
     void createCells();
     void enableCells(int _amount);
     void disableCells();
-    void updateCells(int _n); //sasiedztwo, 0 - vonNeumann, 1 - Moore
+    void updateCells(int _n ,int _n_to_active,int _n_to_inactive); //sasiedztwo, 0 - vonNeumann, 1 - Moore
     Cell* getCell(glm::vec3 _position);
 };
 

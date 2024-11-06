@@ -44,6 +44,7 @@
     void App::mainLoop() {
         while (!glfwWindowShouldClose(window.GetWindow())) {
             glfwPollEvents();
+            updateCellLogic();
             drawFrame();
         }
 
@@ -1364,3 +1365,14 @@ void App::createInstanceBuffer() {
         memcpy(data, instanceData.data(), (size_t)bufferSize); // instanceData to wskaźnik do danych instancji
         vkUnmapMemory(device, instanceBufferMemory);
     }
+
+void App::updateCellLogic() {
+    i +=1;
+    if(imgui.prev_init_active != imgui.init_active){
+        box->enableCells(imgui.init_active);
+    }
+    if(i%150 == 0){
+        box->updateCells(0,2,1);
+    }
+
+}

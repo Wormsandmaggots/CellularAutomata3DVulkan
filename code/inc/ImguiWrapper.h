@@ -20,10 +20,14 @@ public:
     void EndFrame(VkCommandBuffer& command_buffer) const;
     void CleanUp();
 
+    int prev_init_active = 0;
+    int init_active = 0;
+    int neighborhood;
+    int n_to_inactive;
+    int n_to_active;
 private:
     ImGuiIO io;
     int size;
-    int init_active;
     bool adv_states;
     int s_duration;
     int g_duration;
