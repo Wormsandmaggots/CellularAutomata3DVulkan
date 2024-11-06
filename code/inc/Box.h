@@ -12,7 +12,8 @@ public:
     ~Box();
     void createCells();
     void enableCells(int _amount);
-    void iterateCells();
+    void disableCells();
+    void updateCells(int _n); //sasiedztwo, 0 - vonNeumann, 1 - Moore
     Cell* getCell(glm::vec3 _position);
 };
 

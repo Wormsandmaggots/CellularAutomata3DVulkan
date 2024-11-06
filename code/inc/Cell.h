@@ -11,6 +11,7 @@
 class Cell {
 public:
     int state; //0 - inactive, 1 - active, 2 - deactivating, 3 - activating
+    int previousState;
     glm::vec3 position;
     glm::vec4 color;
 

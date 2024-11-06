@@ -31,6 +31,7 @@
 
 #include "VulkanUtils.h"
 #include "Window.h"
+#include "Box.h"
 
 class App {
 public:
@@ -38,6 +39,7 @@ public:
         window.Init();
         initVulkan();
         imgui.Init(this);
+        box = new Box(3);
         mainLoop();
         cleanup();
     }
@@ -57,6 +59,7 @@ public:
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
 
 private:
+    Box* box;
     Window window;
     ImguiWrapper imgui;
 

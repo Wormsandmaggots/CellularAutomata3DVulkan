@@ -1,7 +1,7 @@
 #include "Cell.h"
 
 Cell::Cell(int _state, glm::vec3 _position, glm::vec4 _color) :
-    state(_state), position(_position), color(_color) {
+    state(_state), previousState(_state), position(_position), color(_color) {
 
 }
 
