@@ -1372,7 +1372,7 @@ void App::updateCellLogic() {
         box->enableCells(imgui.init_active);
     }
     if(i%150 == 0){
-        box->updateCells(0,2,1);
+        box->updateCells(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive);
     }
 
 }
