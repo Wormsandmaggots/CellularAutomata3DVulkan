@@ -17,6 +17,6 @@ const std::string TEXTURE_PATH = "assets/texture.jpg";
 
 const int MAX_FRAMES_IN_FLIGHT = 3;
 
-const int INSTANCE_COUNT = 27;
+const int MAX_INSTANCE_COUNT = 1000000;
 
 #endif //SETTINGS_H

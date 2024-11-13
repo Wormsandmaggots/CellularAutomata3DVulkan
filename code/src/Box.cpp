@@ -1,4 +1,6 @@
 #include "Box.h"
+int INSTANCE_COUNT = 27;
+int BOX_SIDE = 3;
 
 Box::Box(int _size): size(_size) {
     createCells();
@@ -17,6 +19,10 @@ void Box::createCells() {
             }
         }
     }
+}
+
+void Box::deleteCells() {
+    cells.clear();
 }
 
 void Box::enableCells(int _amount) {
@@ -50,39 +56,20 @@ void Box::updateCells(int _n, int _n_to_active,int _n_to_inactive) {
             if (auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z + 1))) {activeNeighbours += cell->state->id;}
         }
         else{ //Moore
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y - 1, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y + 1, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z - 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z + 1))) {activeNeighbours += cell->state->id;}
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    for (int k = -1; k <= 1; ++k) {
+                        // Skip the current cell itself
+                        if (i == 0 && j == 0 && k == 0) continue;
 
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y - 1, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y, pos.z - 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y - 1, pos.z - 1))) {activeNeighbours += cell->state->id;}
-
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y + 1, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y, pos.z + 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y + 1, pos.z + 1))) {activeNeighbours += cell->state->id;}
-
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y + 1, pos.z + 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y - 1, pos.z - 1))) {activeNeighbours += cell->state->id;}
-
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y + 1, pos.z + 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y - 1, pos.z + 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y + 1, pos.z - 1))) {activeNeighbours += cell->state->id;}
-
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y - 1, pos.z - 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y - 1, pos.z + 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y + 1, pos.z - 1))) {activeNeighbours += cell->state->id;}
-
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y + 1, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y, pos.z + 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y - 1, pos.z + 1))) {activeNeighbours += cell->state->id;}
-
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y - 1, pos.z))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y, pos.z - 1))) {activeNeighbours += cell->state->id;}
-            if (auto cell = getCell(glm::vec3(pos.x, pos.y + 1, pos.z - 1))) {activeNeighbours += cell->state->id;}
+                        // Calculate the neighbor position
+                        glm::vec3 offset(i, j, k);
+                        if (auto cell = getCell(pos + offset)) {
+                            activeNeighbours += cell->state->id;
+                        }
+                    }
+                }
+            }
         }
         //if cell was active and condition is met
         if(getCell(pos)->state->id == 1 && activeNeighbours >=_n_to_inactive) {
@@ -117,5 +104,14 @@ Cell* Box::getCell(glm::vec3 _position){
 void Box::disableCells() {
     for (auto& cell : cells) {
         cell.second->changeState(&inactive);
+    }
+}
+
+void Box::update(int amount){
+    if(size != BOX_SIDE){
+        size = BOX_SIDE;
+        deleteCells();
+        createCells();
+        enableCells(amount);
     }
 }

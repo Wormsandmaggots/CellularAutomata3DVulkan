@@ -25,12 +25,14 @@ public:
     int neighborhood;
     int n_to_inactive;
     int n_to_active;
+    float fov = 45.0f;
+    int s_duration;
+    int g_duration = 100;
 private:
     ImGuiIO io;
     int size;
     bool adv_states;
-    int s_duration;
-    int g_duration;
+
 };
 
 

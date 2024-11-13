@@ -60,7 +60,6 @@ void ImguiWrapper::Render()
     static int f = 3;
     static int a = 1;
     static int T = 0;
-    static int t = 0;
     static bool as = false;
     static int n = 0;
     static ImColor active_color = glmVec4ToImColor(active.color);
@@ -69,10 +68,6 @@ void ImguiWrapper::Render()
     static ImColor deactivating_color = glmVec4ToImColor(deactivating.color);
     static int _n_to_inactive = 1;
     static int _n_to_active = 1;
-
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
-
     // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
     {
        int ctrl_max = (f*f*f)-1;
@@ -80,6 +75,7 @@ void ImguiWrapper::Render()
            a = ctrl_max;
        ImGui::Begin("Cellular automata 3D");                          // Create a window called "Hello, world!" and append into it.
        ImGui::Text("Use this panel to adjust simulation parameters.");  // Display some text (you can use a format strings too)
+       ImGui::SliderFloat("zoom", &fov, 20.0f, 180.0f);
        ImGui::SliderInt("Cube edge size", &f, 3, 100);
        ImGui::SliderInt("Initially active cells", &a, 1, ctrl_max);
        ImGui::Checkbox("Use advanced states", &as);
@@ -90,7 +86,7 @@ void ImguiWrapper::Render()
            ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
        }
        ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
-       ImGui::SliderInt("Generation duration (frame)", &t, 1,6);
+       ImGui::SliderInt("Generation duration (frame)", &g_duration, 10,100);
         ImGui::RadioButton("Von Neumann Neighborhood", &n, 0);ImGui::SameLine();
         ImGui::RadioButton("Moore Neighborhood", &n, 1);
         ImGui::InputInt("Neighbours to inactive", &_n_to_inactive);
@@ -106,6 +102,8 @@ void ImguiWrapper::Render()
            ImGui::End();
 
            size = f;
+           INSTANCE_COUNT = size * size * size;
+           BOX_SIDE = size;
            prev_init_active = init_active;
            init_active = a;
            adv_states = as;
@@ -114,7 +112,6 @@ void ImguiWrapper::Render()
            activating.color = imColorToGlmVec4(activating_color);
            deactivating.color = imColorToGlmVec4(deactivating_color);
            s_duration = T;
-           g_duration = t;
            neighborhood = n;
            n_to_active = _n_to_active;
            n_to_inactive = _n_to_inactive;

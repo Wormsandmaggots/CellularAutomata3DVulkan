@@ -12,7 +12,7 @@
 
     void App::initVulkan() {
 
-        instanceData = std::vector<InstanceData>(INSTANCE_COUNT);
+        instanceData = std::vector<InstanceData>(MAX_INSTANCE_COUNT);
 
         createInstance();
         setupDebugMessenger();
@@ -1101,7 +1101,7 @@ void App::createInstance() {
 
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), INSTANCE_COUNT, 0, 0, 0);
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), MAX_INSTANCE_COUNT, 0, 0, 0);
 
             imgui.EndFrame(commandBuffer);
 
@@ -1143,13 +1143,13 @@ void App::createInstance() {
         UniformBufferObject ubo{};
         //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+        ubo.proj = glm::perspective(glm::radians(imgui.fov), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 
         std::vector<InstanceData> instanceData(INSTANCE_COUNT);
-        int n = static_cast<int>(std::cbrt(INSTANCE_COUNT));  // Cube root of INSTANCE_COUNT to form n x n x n grid
+        int n = static_cast<int>(std::cbrt(INSTANCE_COUNT));  // Cube root of MAX_INSTANCE_COUNT to form n x n x n grid
 
         for (int i = 0; i < INSTANCE_COUNT; i++) {
             int x = (i % n);           // x position in the grid
@@ -1352,7 +1352,7 @@ void App::createInstance() {
     }
 
 void App::createInstanceBuffer() {
-        VkDeviceSize bufferSize = sizeof(InstanceData) * INSTANCE_COUNT; // Zmienna numberOfInstances określa liczbę instancji
+        VkDeviceSize bufferSize = sizeof(InstanceData) * MAX_INSTANCE_COUNT; // Zmienna numberOfInstances określa liczbę instancji
 
         // Tworzenie bufora instancji
         createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -1371,8 +1371,9 @@ void App::updateCellLogic() {
     if(imgui.prev_init_active != imgui.init_active){
         box->enableCells(imgui.init_active);
     }
-    if(i%150 == 0){
+    if(i%imgui.g_duration == 0){
         box->updateCells(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive);
     }
+    box->update(imgui.init_active); //if box size has changed
 
 }
