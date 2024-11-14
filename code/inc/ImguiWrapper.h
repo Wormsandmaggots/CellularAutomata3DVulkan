@@ -28,10 +28,11 @@ public:
     float fov = 45.0f;
     int s_duration;
     int g_duration = 100;
+    bool additional_states = false;
+    int temporary_state_frames = 2;
 private:
     ImGuiIO io;
     int size;
-    bool adv_states;
 
 };
 

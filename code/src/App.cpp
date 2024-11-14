@@ -1373,7 +1373,7 @@ void App::updateCellLogic() {
         box->enableCells(imgui.init_active);
     }
     if(i%imgui.g_duration == 0){
-        box->updateCells(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive);
+        box->updateCells(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive, imgui.temporary_state_frames, imgui.additional_states);
     }
     box->update(imgui.init_active); //if box size has changed
 

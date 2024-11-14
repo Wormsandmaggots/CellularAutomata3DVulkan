@@ -15,6 +15,7 @@ public:
     State* state;
     State* nextState;
     glm::vec3 position;
+    int frames_hold;
 
 
     Cell(State* _state, glm::vec3 _position);

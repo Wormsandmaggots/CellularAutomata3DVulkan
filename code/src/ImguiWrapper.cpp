@@ -60,7 +60,6 @@ void ImguiWrapper::Render()
     static int f = 3;
     static int a = 1;
     static int T = 0;
-    static bool as = false;
     static int n = 0;
     static ImColor active_color = glmVec4ToImColor(active.color);
     static ImColor inactive_color = glmVec4ToImColor(inactive.color);
@@ -78,12 +77,13 @@ void ImguiWrapper::Render()
        ImGui::SliderFloat("zoom", &fov, 20.0f, 180.0f);
        ImGui::SliderInt("Cube edge size", &f, 3, 100);
        ImGui::SliderInt("Initially active cells", &a, 1, ctrl_max);
-       ImGui::Checkbox("Use advanced states", &as);
+       ImGui::Checkbox("Use advanced states", &additional_states);
        ImGui::ColorEdit3("Active color", (float*)&active_color);
        ImGui::ColorEdit4("Inactive color", (float*)&inactive_color);
-       if(as){
+       if(additional_states){
            ImGui::ColorEdit3("Activating color", (float*)&activating_color);
            ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
+           ImGui::SliderInt("Temp. state duration (frame)", &temporary_state_frames, 1, 10);
        }
        ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
        ImGui::SliderInt("Generation duration (frame)", &g_duration, 10,100);
@@ -106,7 +106,6 @@ void ImguiWrapper::Render()
            BOX_SIDE = size;
            prev_init_active = init_active;
            init_active = a;
-           adv_states = as;
            active.color = imColorToGlmVec4(active_color);
            inactive.color = imColorToGlmVec4(inactive_color);
            activating.color = imColorToGlmVec4(activating_color);
