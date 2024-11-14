@@ -1151,19 +1151,20 @@ void App::createInstance() {
         std::vector<InstanceData> instanceData(INSTANCE_COUNT);
         int n = static_cast<int>(std::cbrt(INSTANCE_COUNT));  // Cube root of MAX_INSTANCE_COUNT to form n x n x n grid
 
+        float baseScale = 0.1f;
+        float minScale = 0.01f;
+        float scale = glm::clamp(baseScale * std::cbrt(27.0f / INSTANCE_COUNT), minScale, baseScale);
+
+        float spacing = scale * 2.0f;
+
         for (int i = 0; i < INSTANCE_COUNT; i++) {
             int x = (i % n);           // x position in the grid
             int y = (i / n) % n;       // y position in the grid
             int z = (i / (n * n)) % n; // z position in the grid
 
-            float spacing = 0.2f; // Adjust spacing as needed
-
-            // Set each instance’s position based on the grid indices
             instanceData[i].model = glm::translate(glm::mat4(1.0f), glm::vec3(x * spacing, y * spacing, z * spacing));
-            instanceData[i].model = glm::scale(instanceData[i].model, glm::vec3(0.1f, 0.1f, 0.1f));
+            instanceData[i].model = glm::scale(instanceData[i].model, glm::vec3(scale, scale, scale));
 
-            // Optional rotation (can vary per instance if desired)
-            instanceData[i].model = glm::rotate(instanceData[i].model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             instanceData[i].color = box->getCell(glm::vec3(x,y,z))->state->color;
         }
 
