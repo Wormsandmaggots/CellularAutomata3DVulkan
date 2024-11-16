@@ -12,6 +12,7 @@
 #include "VulkanUtils.h"
 #include "Settings.h"
 #include "Utils.h"
+#include <chrono>
 
 void ImguiWrapper::Init(App* app)
 {
@@ -55,7 +56,6 @@ void ImguiWrapper::StartFrame()
 void ImguiWrapper::Render()
 {
     static bool show_demo_window = true;
-    static bool show_another_window = false;
 
     static int f = 3;
     static int a = 1;
@@ -67,25 +67,30 @@ void ImguiWrapper::Render()
     static ImColor deactivating_color = glmVec4ToImColor(deactivating.color);
     static int _n_to_inactive = 1;
     static int _n_to_active = 1;
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+
+    static auto start_time = std::chrono::high_resolution_clock::now();
+    static auto end_time = start_time;
+    static double elapsed_time = 0.0;
+    static bool count_time = false;
+
     {
        int ctrl_max = (f*f*f)-1;
        if(ctrl_max < a)
            a = ctrl_max;
-       ImGui::Begin("Cellular automata 3D");                          // Create a window called "Hello, world!" and append into it.
-       ImGui::Text("Use this panel to adjust simulation parameters.");  // Display some text (you can use a format strings too)
-       ImGui::SliderFloat("zoom", &fov, 20.0f, 180.0f);
+       ImGui::Begin("Cellular automata 3D");
+        ImGui::SliderFloat("Zoom", &fov, 20.0f, 180.0f);
+       ImGui::Text("Use this panel to adjust simulation parameters.");
        ImGui::SliderInt("Cube edge size", &f, 3, 100);
        ImGui::SliderInt("Initially active cells", &a, 1, ctrl_max);
        ImGui::Checkbox("Use advanced states", &additional_states);
-       ImGui::ColorEdit3("Active color", (float*)&active_color);
+       ImGui::ColorEdit4("Active color", (float*)&active_color);
        ImGui::ColorEdit4("Inactive color", (float*)&inactive_color);
        if(additional_states){
-           ImGui::ColorEdit3("Activating color", (float*)&activating_color);
-           ImGui::ColorEdit3("Deactivating color", (float*)&deactivating_color);
+           ImGui::ColorEdit4("Activating color", (float*)&activating_color);
+           ImGui::ColorEdit4("Deactivating color", (float*)&deactivating_color);
            ImGui::SliderInt("Temp. state duration (frame)", &temporary_state_frames, 1, 10);
        }
-       ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
+       //ImGui::SliderInt("Simulation duration (s)", &T, 1, 60);
        ImGui::SliderInt("Generation duration (frame)", &g_duration, 10,100);
         ImGui::RadioButton("Von Neumann Neighborhood", &n, 0);ImGui::SameLine();
         ImGui::RadioButton("Moore Neighborhood", &n, 1);
@@ -93,17 +98,25 @@ void ImguiWrapper::Render()
         ImGui::InputInt("Neighbours to active", &_n_to_active);
 
            if (ImGui::Button("Start simulation")){
-               //starting the simulation
+               RUNNING = true;
+               if(!count_time){
+                   start_time = std::chrono::high_resolution_clock::now(); // Record start time
+                   elapsed_time = 0.0; // Reset elapsed time
+                   count_time = true;
+               }
            }
            if (ImGui::Button("Stop simulation")){
-               //stopping the simulation
+               RUNNING = false;
+               count_time = false;
            }
-           ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+           if(count_time) {
+               elapsed_time = std::chrono::duration<double>(
+                       std::chrono::high_resolution_clock::now() - start_time).count();
+           }
+           ImGui::Text("Simulation elapsed time: %.3f seconds", elapsed_time);
            ImGui::End();
 
            size = f;
-           INSTANCE_COUNT = size * size * size;
-           BOX_SIDE = size;
            prev_init_active = init_active;
            init_active = a;
            active.color = imColorToGlmVec4(active_color);
@@ -116,15 +129,6 @@ void ImguiWrapper::Render()
            n_to_inactive = _n_to_inactive;
     }
 
-    // 3. Show another simple window.
-    if (show_another_window)
-    {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
-        ImGui::End();
-    }
 
     ImGui::Render();
 }

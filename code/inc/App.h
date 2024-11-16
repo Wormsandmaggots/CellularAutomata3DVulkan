@@ -34,6 +34,8 @@
 #include "Box.h"
 #include "State.h"
 
+extern bool RUNNING;
+
 class App {
 public:
     void run() {
@@ -62,7 +64,7 @@ public:
 private:
     Box* box;
     int i;
-
+    bool prev_running = false;
     Window window;
     ImguiWrapper imgui;
 

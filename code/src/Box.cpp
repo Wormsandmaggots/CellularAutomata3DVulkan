@@ -1,6 +1,5 @@
 #include "Box.h"
 int INSTANCE_COUNT = 27;
-int BOX_SIDE = 3;
 
 Box::Box(int _size): size(_size) {
     createCells();
@@ -42,39 +41,39 @@ void Box::enableCells(int _amount) {
     }
 }
 
-void Box::updateCells(int _n, int _n_to_active,int _n_to_inactive, int _temporary_state_frames, bool _additional_cells) {
-    if(_additional_cells){
+void Box::updateCells() {
+    if(additional_cells){
         for (auto& cell : cells) {
             glm::vec3 pos =  cell.second->position;
             int state_id = cell.second->state->id;
             if(state_id == 2){ //activating
-                if(cell.second->frames_hold == _temporary_state_frames){
+                if(cell.second->generations_in_state == temporary_state_frames){
                     cell.second->changeNextState(&active);
-                    cell.second->frames_hold = 0;
+                    cell.second->generations_in_state = 0;
                 }
                 else{
-                    cell.second->frames_hold++;
+                    cell.second->generations_in_state++;
                 }
             }
             else if(state_id == 3){ //deactivating
-                if(cell.second->frames_hold == _temporary_state_frames){
+                if(cell.second->generations_in_state == temporary_state_frames){
                     cell.second->changeNextState(&inactive);
-                    cell.second->frames_hold = 0;
+                    cell.second->generations_in_state = 0;
                 }
                 else{
                     cell.second->changeNextState(getCell(pos)->state);
-                    cell.second->frames_hold++;
+                    cell.second->generations_in_state++;
                 }
             }
             else{ //active and inactive
                 glm::vec3 pos =  cell.second->position;
-                int activeNeighbours = findNeighbours(pos, _n);
+                int activeNeighbours = findNeighbours(pos, neighborhood);
                 //if cell was active and condition is met
-                if(cell.second->state->id == 1 && activeNeighbours >=_n_to_inactive) {
+                if(cell.second->state->id == 1 && activeNeighbours >=n_to_inactive) {
                     getCell(pos)->changeNextState(&deactivating);
                 }
                     //if cell was inactive and condition is met
-                else if (cell.second->state->id == 0 && activeNeighbours >=_n_to_active){
+                else if (cell.second->state->id == 0 && activeNeighbours >=n_to_active){
                     getCell(pos)->changeNextState(&activating);
                 }
                     //conditions not met
@@ -87,13 +86,13 @@ void Box::updateCells(int _n, int _n_to_active,int _n_to_inactive, int _temporar
     else{
         for (auto& cell : cells) {
             glm::vec3 pos =  cell.second->position;
-            int activeNeighbours = findNeighbours(pos, _n);
+            int activeNeighbours = findNeighbours(pos, neighborhood);
             //if cell was active and condition is met
-            if(cell.second->state->id == 1 && activeNeighbours >=_n_to_inactive) {
+            if(cell.second->state->id == 1 && activeNeighbours >=n_to_inactive) {
                 getCell(pos)->changeNextState(&inactive);
             }
                 //if cell was inactive and condition is met
-            else if (cell.second->state->id == 0 && activeNeighbours >=_n_to_active){
+            else if (cell.second->state->id == 0 && activeNeighbours >=n_to_active){
                 getCell(pos)->changeNextState(&active);
             }
                 //conditions not met
@@ -120,15 +119,7 @@ Cell* Box::getCell(glm::vec3 _position){
 void Box::disableCells() {
     for (auto& cell : cells) {
         cell.second->changeState(&inactive);
-    }
-}
-
-void Box::update(int amount){
-    if(size != BOX_SIDE){
-        size = BOX_SIDE;
-        deleteCells();
-        createCells();
-        enableCells(amount);
+        cell.second->generations_in_state = 0;
     }
 }
 
@@ -160,4 +151,21 @@ int Box::findNeighbours(glm::vec3 pos, int n){
         }
     }
     return activeNeighbours;
+}
+
+void Box::start(int _n, int _n_to_active, int _n_to_inactive, int _temporary_state_frames, bool _additional_cells, int _amount, int _size) {
+    neighborhood = _n;
+    n_to_active = _n_to_active;
+    n_to_inactive = _n_to_inactive;
+    temporary_state_frames = _temporary_state_frames;
+    additional_cells = _additional_cells;
+    size = _size;
+    INSTANCE_COUNT = size * size * size;
+    deleteCells();
+    createCells();
+    enableCells(_amount);
+}
+
+void Box::stop(){
+    disableCells();
 }

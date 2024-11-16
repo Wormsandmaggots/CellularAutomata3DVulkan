@@ -30,9 +30,10 @@ public:
     int g_duration = 100;
     bool additional_states = false;
     int temporary_state_frames = 2;
+    int size;
 private:
     ImGuiIO io;
-    int size;
+
 
 };
 

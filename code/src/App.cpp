@@ -10,6 +10,8 @@
 #include "VulkanUtils.h"
 #include "Utils.h"
 
+bool RUNNING = false;
+
     void App::initVulkan() {
 
         instanceData = std::vector<InstanceData>(MAX_INSTANCE_COUNT);
@@ -1188,8 +1190,21 @@ void App::createInstance() {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        updateUniformBuffer(currentFrame);
+        if(RUNNING){
+            if(!prev_running){
+                prev_running = true;
+                box->start(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive, imgui.temporary_state_frames, imgui.additional_states, imgui.init_active, imgui.size);
+            }
+            updateUniformBuffer(currentFrame);
+        }
+        else{
+            if(prev_running){
+                box->stop();
+                updateUniformBuffer(currentFrame);
+                prev_running = false;
 
+            }
+        }
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
@@ -1369,12 +1384,7 @@ void App::createInstanceBuffer() {
 
 void App::updateCellLogic() {
     i +=1;
-    if(imgui.prev_init_active != imgui.init_active){
-        box->enableCells(imgui.init_active);
-    }
     if(i%imgui.g_duration == 0){
-        box->updateCells(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive, imgui.temporary_state_frames, imgui.additional_states);
+        box->updateCells();
     }
-    box->update(imgui.init_active); //if box size has changed
-
 }
