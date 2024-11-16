@@ -94,15 +94,30 @@ void ImguiWrapper::Render()
        ImGui::SliderInt("Generation duration (frame)", &g_duration, 10,100);
         ImGui::RadioButton("Von Neumann Neighborhood", &n, 0);ImGui::SameLine();
         ImGui::RadioButton("Moore Neighborhood", &n, 1);
-        ImGui::InputInt("Neighbours to inactive", &_n_to_inactive);
-        ImGui::InputInt("Neighbours to active", &_n_to_active);
+        if (ImGui::InputInt("Neighbours to active", &_n_to_active)) {
+            if (_n_to_active < 0) {
+                _n_to_active = 0;
+            }
+        }
+        if (ImGui::InputInt("Neighbours to inactive", &_n_to_inactive)) {
+            if (_n_to_inactive < 0) {
+                _n_to_inactive = 0;
+            }
+        }
 
            if (ImGui::Button("Start simulation")){
-               RUNNING = true;
-               if(!count_time){
-                   start_time = std::chrono::high_resolution_clock::now(); // Record start time
-                   elapsed_time = 0.0; // Reset elapsed time
-                   count_time = true;
+               if(RUNNING){
+                    RESTART = true;
+                    start_time = std::chrono::high_resolution_clock::now(); // Record start time
+                    elapsed_time = 0.0; // Reset elapsed time
+               }
+               else {
+                   RUNNING = true;
+                   if (!count_time) {
+                       start_time = std::chrono::high_resolution_clock::now(); // Record start time
+                       elapsed_time = 0.0; // Reset elapsed time
+                       count_time = true;
+                   }
                }
            }
            if (ImGui::Button("Stop simulation")){

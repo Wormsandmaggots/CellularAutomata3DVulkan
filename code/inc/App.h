@@ -35,6 +35,7 @@
 #include "State.h"
 
 extern bool RUNNING;
+extern bool RESTART;
 
 class App {
 public:

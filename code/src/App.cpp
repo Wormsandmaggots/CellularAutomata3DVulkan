@@ -11,6 +11,7 @@
 #include "Utils.h"
 
 bool RUNNING = false;
+bool RESTART = false;
 
     void App::initVulkan() {
 
@@ -1192,17 +1193,22 @@ void App::createInstance() {
 
         if(RUNNING){
             if(!prev_running){
+                box->stop();
+                updateUniformBuffer(currentFrame);
                 prev_running = true;
                 box->start(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive, imgui.temporary_state_frames, imgui.additional_states, imgui.init_active, imgui.size);
+            }
+            else if(RESTART){
+                box->stop();
+                box->start(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive, imgui.temporary_state_frames, imgui.additional_states, imgui.init_active, imgui.size);
+                RESTART = false;
             }
             updateUniformBuffer(currentFrame);
         }
         else{
             if(prev_running){
-                box->stop();
                 updateUniformBuffer(currentFrame);
                 prev_running = false;
-
             }
         }
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
