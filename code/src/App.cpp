@@ -1389,6 +1389,9 @@ void App::createInstanceBuffer() {
     }
 
 void App::updateCellLogic() {
+
+    if(!RUNNING) return;
+
     i +=1;
     if(i%imgui.g_duration == 0){
         box->updateCells();
