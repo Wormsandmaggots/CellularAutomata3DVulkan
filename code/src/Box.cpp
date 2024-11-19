@@ -1,4 +1,9 @@
 #include "Box.h"
+
+namespace Constants {
+    constexpr int VON_NEUMANN = 0;
+}
+
 int INSTANCE_COUNT = 27;
 
 Box::Box(int _size): size(_size) {
@@ -6,7 +11,7 @@ Box::Box(int _size): size(_size) {
 }
 Box::~Box() {
     for (auto& cell : cells) {
-        delete cell.second;
+        delete cell;
     }
 }
 
@@ -14,13 +19,16 @@ void Box::createCells() {
     for(int x=0; x<size; x++){
         for(int y=0; y<size; y++){
             for(int z=0; z<size; z++){
-                cells[glm::vec3(x,y,z)] = new Cell(&inactive, glm::vec3(x,y,z)); //creating inactive cells
+                //cells[glm::vec3(x,y,z)] = new Cell(&inactive, glm::vec3(x,y,z)); //creating inactive cells
+                cells.push_back(new Cell(&inactive, glm::vec3(x,y,z)));
             }
         }
     }
 }
 
 void Box::deleteCells() {
+    for(const auto& cell : cells) { delete cell; }
+    
     cells.clear();
 }
 
@@ -43,96 +51,100 @@ void Box::enableCells(int _amount) {
 
 void Box::updateCells() {
     if(additional_cells){
-        for (auto& cell : cells) {
-            glm::vec3 pos =  cell.second->position;
-            int state_id = cell.second->state->id;
+        for (const auto& cell : cells) {
+            glm::vec3 pos =  cell->position;
+            int state_id = cell->state->id;
             if(state_id == 2){ //activating
-                if(cell.second->generations_in_state == temporary_state_frames){
-                    cell.second->changeNextState(&active);
-                    cell.second->generations_in_state = 0;
+                if(cell->generations_in_state == temporary_state_frames){
+                    cell->changeNextState(&active);
+                    cell->generations_in_state = 0;
                 }
                 else{
-                    cell.second->generations_in_state++;
+                    cell->generations_in_state++;
                 }
             }
             else if(state_id == 3){ //deactivating
-                if(cell.second->generations_in_state == temporary_state_frames){
-                    cell.second->changeNextState(&inactive);
-                    cell.second->generations_in_state = 0;
+                if(cell->generations_in_state == temporary_state_frames){
+                    cell->changeNextState(&inactive);
+                    cell->generations_in_state = 0;
                 }
                 else{
-                    cell.second->changeNextState(getCell(pos)->state);
-                    cell.second->generations_in_state++;
+                    cell->changeNextState(getCell(pos)->state);
+                    cell->generations_in_state++;
                 }
             }
             else{ //active and inactive
-                glm::vec3 pos =  cell.second->position;
+                glm::vec3 pos =  cell->position;
                 int activeNeighbours = findNeighbours(pos, neighborhood);
                 //if cell was active and condition is met
-                if(cell.second->state->id == 1 && activeNeighbours >=n_to_inactive) {
+                if(cell->state->id == 1 && activeNeighbours >=n_to_inactive) {
                     getCell(pos)->changeNextState(&deactivating);
                 }
                     //if cell was inactive and condition is met
-                else if (cell.second->state->id == 0 && activeNeighbours >=n_to_active){
+                else if (cell->state->id == 0 && activeNeighbours >=n_to_active){
                     getCell(pos)->changeNextState(&activating);
                 }
                     //conditions not met
                 else{
-                    cell.second->changeNextState(getCell(pos)->state);
+                    cell->changeNextState(getCell(pos)->state);
                 }
             }
         }
     }
     else{
         for (auto& cell : cells) {
-            glm::vec3 pos =  cell.second->position;
+            glm::vec3 pos =  cell->position;
             int activeNeighbours = findNeighbours(pos, neighborhood);
             //if cell was active and condition is met
-            if(cell.second->state->id == 1 && activeNeighbours >=n_to_inactive) {
+            if(cell->state->id == 1 && activeNeighbours >=n_to_inactive) {
                 getCell(pos)->changeNextState(&inactive);
             }
                 //if cell was inactive and condition is met
-            else if (cell.second->state->id == 0 && activeNeighbours >=n_to_active){
+            else if (cell->state->id == 0 && activeNeighbours >=n_to_active){
                 getCell(pos)->changeNextState(&active);
             }
                 //conditions not met
             else{
-                cell.second->changeNextState(getCell(pos)->state);
+                cell->changeNextState(getCell(pos)->state);
             }
         }
     }
 
     for (auto& cell : cells) {
-        cell.second->changePrevState(cell.second->state);
-        cell.second->changeState(cell.second->nextState);
+        cell->changePrevState(cell->state);
+        cell->changeState(cell->nextState);
     }
 }
 
-Cell* Box::getCell(glm::vec3 _position){
-    auto it = cells.find(_position);
-    if (it != cells.end()) {
-        return it->second;
-    }
-    return nullptr;
+Cell* Box::getCell(const glm::vec3& _position) const{
+    // auto it = cells.find(_position);
+    // if (it != cells.end()) {
+    //     return it->second;
+    // }
+    const int index = _position.x * size * size + _position.y * size + _position.z;
+
+    if(index < 0 || index >= cells.size()) return nullptr;
+
+    return cells[index];
 }
 
 void Box::disableCells() {
     for (auto& cell : cells) {
-        cell.second->changeState(&inactive);
-        cell.second->generations_in_state = 0;
+        cell->changeState(&inactive);
+        cell->generations_in_state = 0;
     }
 }
 
 int Box::findNeighbours(glm::vec3 pos, int n){
     int activeNeighbours = 0;
-    if(n == 0){ //Von Neumann
+    if(n == Constants::VON_NEUMANN){ //Von Neumann
         //how many neighbours are active
-        if (auto cell = getCell(glm::vec3(pos.x - 1, pos.y, pos.z))) {activeNeighbours += cell->state->id;}
-        if (auto cell = getCell(glm::vec3(pos.x + 1, pos.y, pos.z))) {activeNeighbours += cell->state->id;}
-        if (auto cell = getCell(glm::vec3(pos.x, pos.y - 1, pos.z))) {activeNeighbours += cell->state->id;}
-        if (auto cell = getCell(glm::vec3(pos.x, pos.y + 1, pos.z))) {activeNeighbours += cell->state->id;}
-        if (auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z - 1))) {activeNeighbours += cell->state->id;}
-        if (auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z + 1))) {activeNeighbours += cell->state->id;}
+        if (const auto cell = getCell(glm::vec3(pos.x - 1, pos.y, pos.z))) {activeNeighbours += cell->state->id;}
+        if (const auto cell = getCell(glm::vec3(pos.x + 1, pos.y, pos.z))) {activeNeighbours += cell->state->id;}
+        if (const auto cell = getCell(glm::vec3(pos.x, pos.y - 1, pos.z))) {activeNeighbours += cell->state->id;}
+        if (const auto cell = getCell(glm::vec3(pos.x, pos.y + 1, pos.z))) {activeNeighbours += cell->state->id;}
+        if (const auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z - 1))) {activeNeighbours += cell->state->id;}
+        if (const auto cell = getCell(glm::vec3(pos.x, pos.y, pos.z + 1))) {activeNeighbours += cell->state->id;}
     }
     else{ //Moore
         for (int i = -1; i <= 1; ++i) {
