@@ -1,6 +1,7 @@
 #ifndef CELLULARAUTOMATA3DVULKAN_BOX_H
 #define CELLULARAUTOMATA3DVULKAN_BOX_H
 #include <map>
+#include <optional>
 #include <vector>
 
 #include "Cell.h"
@@ -9,6 +10,7 @@ class Box {
 public:
     //std::unordered_map<Cell*> cells;
     std::vector<Cell*> cells;
+    std::vector<std::pair<Cell*, State*>> cellsToChange;
 
 
     Box(int _size);
@@ -18,9 +20,9 @@ public:
     void enableCells(int _amount);
     void disableCells();
     void updateCells();
-    Cell* getCell(const glm::vec3& _position) const;
+    Cell* getCell(const glm::ivec3& _position) const;
    // void update(int amount);
-    int findNeighbours(glm::vec3 pos, int n);
+    int findNeighbours(const glm::ivec3& pos, int n) const;
     void start(int _n ,int _n_to_active,int _n_to_inactive, int _temporary_state_frames, bool _additional_cells, int _amount, int _size); //sasiedztwo, 0 - vonNeumann, 1 - Moore
     void stop();
 private:

@@ -29,6 +29,7 @@ add_executable(CellularAutomata3DVulkan
 
 #Vulkan
 find_package(Vulkan REQUIRED)
+find_package(OpenMP REQUIRED)
 
 
 target_include_directories(CellularAutomata3DVulkan PRIVATE
@@ -39,6 +40,7 @@ target_include_directories(CellularAutomata3DVulkan PRIVATE
         ${Vulkan_INCLUDE_DIRS}
 )
 
+target_compile_options(CellularAutomata3DVulkan PRIVATE -Wall ${OpenMP_CXX_FLAGS})
 
 target_link_libraries(CellularAutomata3DVulkan
         glad
@@ -49,6 +51,8 @@ target_link_libraries(CellularAutomata3DVulkan
         Vulkan::Vulkan
         stb
         tiny_obj
+        ${OpenMP_CXX_FLAGS}
+        #OpenMP::OpenMP_CXX
 )
 
 target_link_libraries(CellularAutomata3DVulkan Vulkan::Vulkan)

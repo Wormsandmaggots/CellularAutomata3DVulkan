@@ -16,3 +16,7 @@ void Cell::changeNextState(State* _newState) {
 void Cell::changePrevState(State* _newState) {
     previousState = _newState;
 }
+
+const glm::vec3 & Cell::getPosition() const {
+    return position;
+}

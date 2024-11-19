@@ -7,10 +7,10 @@ struct State{
     int id;
     glm::vec4 color;
 };
-extern struct State inactive;
-extern struct State active;
-extern struct State activating;
-extern struct State deactivating;
+extern State inactive;
+extern State active;
+extern State activating;
+extern State deactivating;
 
 
 

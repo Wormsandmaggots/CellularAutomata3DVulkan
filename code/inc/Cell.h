@@ -8,20 +8,26 @@
 #include <unordered_map>
 #include <memory>
 #include "State.h"
+#include "Types.h"
 
 class Cell {
 public:
-    State* previousState;
-    State* state;
-    State* nextState;
-    glm::vec3 position;
+    State* previousState = null;
+    State* state = null;
+    State* nextState = null;
     int generations_in_state = 0;
 
 
+    Cell() = default;
     Cell(State* _state, glm::vec3 _position);
     void changeState(State* _newState);
     void changeNextState(State* _newState);
     void changePrevState(State* _newState);
+
+    const glm::vec3& getPosition() const;
+
+private:
+    glm::vec3 position;
 };
 
 struct Vec3Hash {
