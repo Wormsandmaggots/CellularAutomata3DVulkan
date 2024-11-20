@@ -25,7 +25,6 @@ void Box::createCells() {
     for(int x=0; x<size; x++){
         for(int y=0; y<size; y++){
             for(int z=0; z<size; z++){
-                //cells[glm::vec3(x,y,z)] = new Cell(&inactive, glm::vec3(x,y,z)); //creating inactive cells
                 cells.push_back(new Cell(&inactive, glm::vec3(x,y,z)));
             }
         }
@@ -73,7 +72,7 @@ void Box::updateCells() {
                     cell->generations_in_state = 0;
                 }
                 else{
-                    cellsToChange.emplace_back(cell, getCell(pos)->state);
+                    //cellsToChange.emplace_back(cell, getCell(pos)->state);
                     cell->generations_in_state++;
                 }
             }
@@ -89,7 +88,7 @@ void Box::updateCells() {
                 }
                     //conditions not met
                 else{
-                    cellsToChange.emplace_back(cell, cell->state);
+                    //cellsToChange.emplace_back(cell, cell->state);
                 }
             }
         }
@@ -109,15 +108,15 @@ void Box::updateCells() {
             }
                 //conditions not met
             else{
-                cellsToChange.emplace_back(cell, cell->state);
+                //cellsToChange.emplace_back(cell, cell->state);
             }
         }
     }
 
-    for(int i=0; i<cellsToChange.size(); i++){
-        std::pair cellStatePair = cellsToChange[i];
-        Cell* c;
-        State* s;
+    Cell* c;
+    State* s;
+
+    for(auto cellStatePair : cellsToChange){
 
         c = cellStatePair.first;
         s = cellStatePair.second;

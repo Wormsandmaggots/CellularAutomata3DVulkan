@@ -1,0 +1,90 @@
+#version 450
+
+// Struktura stanu
+struct State {
+    int id;      // Identyfikator stanu (np. aktywny, nieaktywny)
+    vec4 color;  // Kolor reprezentujący stan
+};
+
+// Struktura komórki
+struct Cell {
+    ivec3 position;       // Pozycja komórki w przestrzeni 3D
+    int state_id;         // Identyfikator stanu komórki
+    int generations_in_state; // Liczba generacji w bieżącym stanie
+};
+
+layout(set = 0, binding = 0) buffer Cells {
+    Cell cells[]; // Bufor przechowujący komórki
+};
+
+layout(set = 0, binding = 1) buffer States {
+    State states[]; // Bufor przechowujący stany
+};
+
+layout(set = 0, binding = 2) buffer Params {
+    int nToInactive;
+    int nToActive;
+    int temporaryStateFrames;
+    int neighborhood;
+};
+
+layout(local_size_x = 64) in; // Liczba komórek w jednej grupie roboczej
+
+// Stałe
+const int ACTIVATING = 1;
+const int DEACTIVATING = 2;
+const int ACTIVE = 3;
+const int INACTIVE = 4;
+const int temporary_state_frames = 5; // Liczba klatek dla tymczasowego stanu
+const int n_to_inactive = 3;         // Próg aktywnych sąsiadów do deaktywacji
+const int n_to_active = 2;           // Próg aktywnych sąsiadów do aktywacji
+
+// Funkcja do obliczenia liczby aktywnych sąsiadów (szkic)
+int findNeighbours(ivec3 pos) {
+    // Placeholder: powinna być implementacja do zliczania aktywnych sąsiadów
+    return 4; // Zwróć przykładową liczbę aktywnych sąsiadów
+}
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;  // Pobieramy globalny index komórki
+    if (idx >= cells.length()) {
+        return;  // Jeśli index przekracza liczbę komórek, wychodzimy
+    }
+
+    Cell cell = cells[idx];  // Pobieramy komórkę
+    State state = states[cell.state_id];  // Pobieramy stan komórki
+    int activeNeighbours = findNeighbours(cell.position);  // Zliczamy aktywnych sąsiadów
+
+    // Logika zmiany stanu komórki
+    if (state.id == ACTIVATING) {
+        if (cell.generations_in_state == temporary_state_frames) {
+            // Po osiągnięciu liczby generacji, ustawiamy stan na aktywny
+            cell.state_id = ACTIVE;
+            cell.generations_in_state = 0;
+        } else {
+            cell.generations_in_state++;
+        }
+    } else if (state.id == DEACTIVATING) {
+        if (cell.generations_in_state == temporary_state_frames) {
+            // Po osiągnięciu liczby generacji, ustawiamy stan na nieaktywny
+            cell.state_id = INACTIVE;
+            cell.generations_in_state = 0;
+        } else {
+            // Można zaimplementować logikę zmiany stanu na podstawie sąsiedztw
+            cell.generations_in_state++;
+        }
+    } else if (state.id == ACTIVE) {
+        if (activeNeighbours >= n_to_inactive) {
+            // Jeśli liczba aktywnych sąsiadów jest wystarczająca, ustawiamy stan na deaktywujący
+            cell.state_id = DEACTIVATING;
+        }
+    } else if (state.id == INACTIVE) {
+        if (activeNeighbours >= n_to_active) {
+            // Jeśli liczba aktywnych sąsiadów jest wystarczająca, ustawiamy stan na aktywujący
+            cell.state_id = ACTIVATING;
+        }
+    }
+
+    // Zapisujemy zmienioną komórkę z powrotem do bufora
+    cells[idx] = cell;
+}

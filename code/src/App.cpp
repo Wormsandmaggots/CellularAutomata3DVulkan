@@ -1200,6 +1200,7 @@ void App::createInstance() {
             }
             else if(RESTART){
                 box->stop();
+                updateUniformBuffer(currentFrame);
                 box->start(imgui.neighborhood,imgui.n_to_active,imgui.n_to_inactive, imgui.temporary_state_frames, imgui.additional_states, imgui.init_active, imgui.size);
                 RESTART = false;
             }
