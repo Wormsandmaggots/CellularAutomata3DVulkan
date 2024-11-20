@@ -80,7 +80,7 @@ void ImguiWrapper::Render()
        ImGui::Begin("Cellular automata 3D");
         ImGui::SliderFloat("Zoom", &fov, 20.0f, 180.0f);
        ImGui::Text("Use this panel to adjust simulation parameters.");
-       ImGui::SliderInt("Cube edge size", &f, 3, 100);
+       ImGui::SliderInt("Cube edge size", &f, 3, 50);
        ImGui::SliderInt("Initially active cells", &a, 1, ctrl_max);
        ImGui::Checkbox("Use advanced states", &additional_states);
        ImGui::ColorEdit4("Active color", (float*)&active_color);

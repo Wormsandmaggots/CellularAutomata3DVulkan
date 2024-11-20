@@ -87,9 +87,9 @@ void Box::updateCells() {
                     cellsToChange.emplace_back(cell, &activating);
                 }
                     //conditions not met
-                else{
-                    //cellsToChange.emplace_back(cell, cell->state);
-                }
+                // else{
+                //     //cellsToChange.emplace_back(cell, cell->state);
+                // }
             }
         }
     }
@@ -107,9 +107,9 @@ void Box::updateCells() {
                 cellsToChange.emplace_back(cell, &active);
             }
                 //conditions not met
-            else{
-                //cellsToChange.emplace_back(cell, cell->state);
-            }
+            // else{
+            //     //cellsToChange.emplace_back(cell, cell->state);
+            // }
         }
     }
 
