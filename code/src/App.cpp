@@ -6,6 +6,8 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
+#include <chrono>
+
 #include "Settings.h"
 #include "VulkanUtils.h"
 #include "Utils.h"

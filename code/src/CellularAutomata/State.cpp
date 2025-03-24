@@ -1,4 +1,4 @@
-#include "State.h"
+#include "CellularAutomata/State.h"
 struct State inactive = {0, glm::vec4(0, 0, 0, 0)};
 struct State active = {1, glm::vec4(0, 1, 0, 1)};
 struct State activating = {2, glm::vec4(1, 1, 0, 0.5f)};

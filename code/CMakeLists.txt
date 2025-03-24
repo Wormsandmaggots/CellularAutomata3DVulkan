@@ -18,12 +18,12 @@ add_executable(CellularAutomata3DVulkan
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${HEADER_FILES}
         ${SOURCE_FILES}
-        src/Cell.cpp
-        inc/Cell.h
-        src/Box.cpp
-        inc/Box.h
-        inc/State.h
-        src/State.cpp
+        src/CellularAutomata/Cell.cpp
+        inc/CellularAutomata/Cell.h
+        src/CellularAutomata/Box.cpp
+        inc/CellularAutomata/Box.h
+        inc/CellularAutomata/State.h
+        src/CellularAutomata/State.cpp
 )
 
 
@@ -52,7 +52,6 @@ target_link_libraries(CellularAutomata3DVulkan
         stb
         tiny_obj
         ${OpenMP_CXX_FLAGS}
-        #OpenMP::OpenMP_CXX
 )
 
 target_link_libraries(CellularAutomata3DVulkan Vulkan::Vulkan)

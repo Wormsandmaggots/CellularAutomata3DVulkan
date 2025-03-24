@@ -1,4 +1,4 @@
-#include "Box.h"
+#include "CellularAutomata/Box.h"
 
 #include "Types.h"
 

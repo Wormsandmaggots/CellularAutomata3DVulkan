@@ -1,4 +1,4 @@
-#include "Cell.h"
+#include "CellularAutomata/Cell.h"
 
 Cell::Cell(State* _state, glm::vec3 _position) :
     state(_state), previousState(_state), position(_position) {
